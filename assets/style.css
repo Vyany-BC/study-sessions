@@ -1,0 +1,141 @@
+:root {
+  --purple-900: #3b3680;
+  --purple-700: #5a52a8;
+  --purple-500: #7a6fd0;
+  --purple-100: #ebe8fb;
+  --bg: #e9e5f7;
+  --panel: #ffffff;
+  --text: #22204a;
+  --muted: #8a88a8;
+  --border: #e4e1f2;
+  --card-lav: #efedfc;
+  --card-pink: #f5e9f8;
+  --card-peach: #fbebee;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.55;
+  color: var(--text);
+  background: linear-gradient(135deg, #cfc8ee, #ece8fa);
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 220px 1fr 300px;
+  max-width: 1180px;
+  margin: 0 auto;
+  background: var(--panel);
+  border: 4px solid var(--purple-700);
+  border-radius: 28px;
+  overflow: hidden;
+  min-height: 80vh;
+}
+
+/* Sidebar */
+.sidebar {
+  background: var(--purple-700);
+  color: #fff;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.brand { font-size: 1.3rem; font-weight: 700; margin-bottom: 28px; }
+.sidebar a {
+  color: #d9d5f5;
+  text-decoration: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+.sidebar a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.sidebar a.active { background: rgba(255,255,255,0.18); color: #fff; font-weight: 600; }
+.sidebar .bottom { margin-top: auto; }
+
+/* Main area */
+.main { padding: 28px 28px 36px; background: var(--panel); }
+.main h1 { color: var(--purple-700); font-size: 1.8rem; margin: 0 0 6px; }
+.main .subtitle { color: var(--muted); margin: 0 0 22px; }
+.main h2 { color: var(--purple-700); font-size: 1.15rem; margin-top: 0; }
+
+/* Chapter cards */
+.card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 16px;
+  text-decoration: none;
+  color: var(--text);
+}
+.card.lav { background: var(--card-lav); }
+.card.pink { background: var(--card-pink); }
+.card.peach { background: var(--card-peach); }
+.card .badge {
+  flex: none;
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  background: var(--purple-500);
+  color: #fff;
+  font-weight: 700;
+  display: grid; place-items: center;
+  font-size: 1.1rem;
+}
+.card h3 { margin: 0 0 4px; font-size: 1.1rem; }
+.card p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.card .go {
+  margin-left: auto;
+  flex: none;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--purple-500);
+  color: #fff;
+  display: grid; place-items: center;
+}
+.card.soon { opacity: 0.65; }
+
+/* Content sections (chapter pages) */
+section {
+  background: var(--card-lav);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin: 16px 0;
+}
+section h2 { margin-top: 0; }
+table { border-collapse: collapse; width: 100%; background: #fff; border-radius: 10px; overflow: hidden; }
+th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
+th { background: var(--purple-100); }
+code { background: var(--purple-100); padding: 1px 6px; border-radius: 5px; }
+details { margin-top: 10px; }
+summary { cursor: pointer; color: var(--purple-700); font-weight: 600; }
+a { color: var(--purple-700); }
+
+/* Right panel */
+.panel { background: #faf9ff; padding: 28px 22px; border-left: 1px solid var(--border); }
+.panel h2 { color: var(--purple-700); font-size: 1.1rem; margin: 0 0 12px; }
+.calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 0.8rem; margin-bottom: 24px; }
+.calendar .dow { color: var(--muted); font-size: 0.7rem; }
+.calendar span { padding: 6px 0; border-radius: 50%; }
+.calendar .hl { background: var(--purple-700); color: #fff; font-weight: 700; }
+.upcoming { list-style: none; padding: 0; margin: 0; }
+.upcoming li { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+.upcoming .date { color: var(--purple-700); font-weight: 600; white-space: nowrap; }
+
+footer { margin-top: 28px; color: var(--muted); font-size: 0.85rem; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  body { padding: 10px; }
+  .app { grid-template-columns: 1fr; border-radius: 20px; }
+  .sidebar { flex-direction: row; flex-wrap: wrap; align-items: center; padding: 14px; }
+  .brand { margin: 0 12px 0 0; }
+  .sidebar .bottom { margin-top: 0; margin-left: auto; }
+  .panel { border-left: none; border-top: 1px solid var(--border); }
+}
