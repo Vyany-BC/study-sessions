@@ -7,20 +7,71 @@
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-  <header>
-    <h1>ML Study Lab</h1>
-    <p>Machine learning explained with meal planner examples (CS 460 / CS 481).</p>
-  </header>
+  <div class="app">
 
-  <main>
-    <h2>Chapters</h2>
-    <ul>
-      <li><a href="chapter-template.html">Chapter 4: Decision Trees</a> (under construction)</li>
-    </ul>
-  </main>
+    <aside class="sidebar">
+      <div class="brand">ML Study Lab</div>
+      <a class="active" href="index.html">Dashboard</a>
+      <a href="#chapters">All Chapters</a>
+      <a href="#schedule">Schedule</a>
+      <a class="bottom" href="https://github.com/Vyany-BC/study-sessions">GitHub repo</a>
+    </aside>
 
-  <footer>
-    <p>Study project by Vyany · Bellevue College</p>
-  </footer>
+    <main class="main">
+      <h1>My Chapters</h1>
+      <p class="subtitle">Machine learning explained with meal planner examples (CS 460 / CS 481).</p>
+
+      <div id="chapters">
+        <a class="card lav" href="chapter-template.html">
+          <div class="badge">4</div>
+          <div>
+            <h3>Decision Trees</h3>
+            <p>Entropy, information gain and ID3, using meals from the planner.</p>
+          </div>
+          <div class="go">&rsaquo;</div>
+        </a>
+
+        <div class="card pink soon">
+          <div class="badge">5</div>
+          <div>
+            <h3>Similarity-Based Learning</h3>
+            <p>Distances and k-NN: finding recipes that are alike. Coming soon.</p>
+          </div>
+          <div class="go">&rsaquo;</div>
+        </div>
+
+        <div class="card peach soon">
+          <div class="badge">6</div>
+          <div>
+            <h3>Probability-Based Learning</h3>
+            <p>Bayes theorem: how likely I am to like a recipe. Coming soon.</p>
+          </div>
+          <div class="go">&rsaquo;</div>
+        </div>
+      </div>
+
+      <footer>Study project by Vyany &middot; Bellevue College</footer>
+    </main>
+
+    <aside class="panel" id="schedule">
+      <h2>Oct 2026</h2>
+      <div class="calendar">
+        <span class="dow">Mon</span><span class="dow">Tue</span><span class="dow">Wed</span><span class="dow">Thu</span><span class="dow">Fri</span><span class="dow">Sat</span><span class="dow">Sun</span>
+        <span></span><span></span><span></span>
+        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span>
+        <span class="hl">28</span><span class="hl">29</span>
+        <span>30</span><span>31</span>
+      </div>
+
+      <h2>Upcoming</h2>
+      <ul class="upcoming">
+        <li><span>CS 481 skill report due</span><span class="date">Oct 28</span></li>
+        <li><span>CS 460 midterm</span><span class="date">Oct 29</span></li>
+        <li><span>CS 481 presentation</span><span class="date">Nov 4</span></li>
+        <li><span>CS 460 final</span><span class="date">Dec 10</span></li>
+      </ul>
+    </aside>
+
+  </div>
 </body>
 </html>
