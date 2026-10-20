@@ -5,8 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chapter Template - ML Study Lab</title>
   <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script type="module" src="assets/site.js"></script>
 </head>
 <body>
+  <!--
+    Site rules for every chapter page:
+    1. Formulas: write them in LaTeX. Inline: \( ... \)   Display: \[ ... \]
+    2. Code: write it as <pre class="py-run"> ... </pre> so it is editable and runnable.
+       Helper code shared by several blocks goes in <pre class="py-setup"> ... </pre> at the end of the body.
+    3. Diagrams: write them as <pre class="mermaid"> ... </pre> (Mermaid syntax).
+  -->
   <div class="app">
 
     <aside class="sidebar">
@@ -33,11 +44,25 @@
 
       <section id="step-by-step">
         <h2>3. Step-by-step calculation</h2>
+        <p>Formula example: \( \bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i \)</p>
+        \[ \text{Display formulas go on their own line.} \]
         <ol>
           <li>Step one.</li>
           <li>Step two.</li>
           <li>Step three.</li>
         </ol>
+
+        <p>Diagram example:</p>
+<pre class="mermaid">
+flowchart LR
+  A["Data"] --> B["Model"] --> C["Prediction"]
+</pre>
+
+        <p>Code example (editable, press Run):</p>
+<pre class="py-run">
+values = [2, 4, 6]
+print(sum(values) / len(values))
+</pre>
       </section>
 
       <section id="practice">
