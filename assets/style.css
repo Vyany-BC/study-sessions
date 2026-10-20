@@ -197,3 +197,7 @@ pre.mermaid {
 
 /* Hidden helper code is removed by site.js; this hides it if scripts are blocked. */
 pre.py-setup { display: none; }
+
+/* Keep wide content (tables, formulas, code) inside its column so the right panel is not cut off */
+.main { min-width: 0; }
+section { overflow-x: auto; }
