@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 6: Probability-Based Learning - ML Study Lab</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script type="module" src="assets/site.js"></script>
+</head>
+<body>
+  <div class="app">
+
+    <aside class="sidebar">
+      <div class="brand">ML Study Lab</div>
+      <a href="index.html">Dashboard</a>
+      <a class="active" href="index.html#chapters">All Chapters</a>
+      <a href="index.html#schedule">Schedule</a>
+      <a class="bottom" href="https://github.com/Vyany-BC/study-sessions">GitHub repo</a>
+    </aside>
+
+    <main class="main">
+      <h1>Chapter 6: Probability-Based Learning</h1>
+      <p class="subtitle">How to predict with Bayes' theorem and the naive Bayes model, using the meals the planner skipped.</p>
+
+      <section id="big-idea">
+        <h2>1. Big idea</h2>
+        <p>Probability-based learning predicts the target level that is <strong>most probable given the evidence</strong> in the query. Bayes' theorem lets us reverse a conditional probability: from how likely the evidence is when the event happens, we get how likely the event is when we see the evidence. The <strong>naive Bayes</strong> model makes this practical for many features by assuming that the features are independent of each other once the target level is known. <strong>Smoothing</strong> then removes the zero probabilities that a small dataset produces.</p>
+      </section>
+
+      <section id="meal-planner-example">
+        <h2>2. Meal planner example</h2>
+        <p>The planner has a history of 12 planned meals. For each one it recorded the <strong>prep time</strong>, the <strong>day</strong> it was planned for, whether I had most of the <strong>ingredients at home</strong>, and whether I <strong>skipped</strong> the meal.</p>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Prep time</th><th>Day</th><th>Ingredients at home</th><th>Skipped?</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Long</td><td>Weekday</td><td>Few</td><td>Yes</td></tr>
+            <tr><td>2</td><td>Long</td><td>Weekday</td><td>Few</td><td>Yes</td></tr>
+            <tr><td>3</td><td>Long</td><td>Weekday</td><td>Most</td><td>Yes</td></tr>
+            <tr><td>4</td><td>Long</td><td>Weekend</td><td>Most</td><td>No</td></tr>
+            <tr><td>5</td><td>Short</td><td>Weekday</td><td>Most</td><td>No</td></tr>
+            <tr><td>6</td><td>Short</td><td>Weekday</td><td>Few</td><td>No</td></tr>
+            <tr><td>7</td><td>Short</td><td>Weekend</td><td>Most</td><td>No</td></tr>
+            <tr><td>8</td><td>Short</td><td>Weekend</td><td>Few</td><td>No</td></tr>
+            <tr><td>9</td><td>Long</td><td>Weekday</td><td>Most</td><td>No</td></tr>
+            <tr><td>10</td><td>Short</td><td>Weekday</td><td>Few</td><td>Yes</td></tr>
+            <tr><td>11</td><td>Long</td><td>Weekday</td><td>Few</td><td>Yes</td></tr>
+            <tr><td>12</td><td>Short</td><td>Weekday</td><td>Most</td><td>No</td></tr>
+          </tbody>
+        </table>
+        <p>Five meals were skipped and seven were cooked. The question: if the next planned meal has <strong>Long</strong> prep time, is on a <strong>Weekday</strong> and I have <strong>Few</strong> ingredients at home, will I skip it?</p>
+      </section>
+
+      <section id="step-by-step">
+        <h2>3. Step-by-step calculation</h2>
+        <p><strong>Formulas.</strong></p>
+        \[ P(X \mid Y) = \frac{P(Y \mid X)\,P(X)}{P(Y)} \qquad P(Y) = \sum_i P(Y \mid X_i)\,P(X_i) \]
+        <p>The second formula is the theorem of total probability. With several features \(q[1], \dots, q[m]\) and a target \(t\), Bayes' theorem gives the posterior of each target level \(l\):</p>
+        \[ P(t = l \mid q[1], \dots, q[m]) = \frac{P(q[1], \dots, q[m] \mid t = l)\,P(t = l)}{P(q[1], \dots, q[m])} \]
+        <p>The denominator is the same for every level, so for a prediction we only compare the numerators (this is the maximum a posteriori, or MAP, prediction). The naive Bayes model assumes conditional independence: \(P(X, Y \mid Z) = P(X \mid Z)\,P(Y \mid Z)\). Then:</p>
+        \[ M(q) = \arg\max_{l \in \mathrm{levels}(t)} \left( \prod_{i=1}^{m} P(q[i] \mid t = l) \right) \times P(t = l) \]
+
+        <ol>
+          <li>
+            <strong>Bayes' theorem by hand (the example from class).</strong> A test is 99% accurate and the disease strikes 1 in 10,000 people. We know \(P(d) = 0.0001\), \(P(t \mid d) = 0.99\) and \(P(t \mid \neg d) = 0.01\). The probability of a positive test comes from total probability:
+            \[ P(t) = 0.99 \times 0.0001 + 0.01 \times 0.9999 = 0.010098 \]
+            \[ P(d \mid t) = \frac{P(t \mid d)\,P(d)}{P(t)} = \frac{0.99 \times 0.0001}{0.010098} = 0.0098 \]
+            A positive test means only about a 1% chance of having the disease, because the disease is so rare. This is why Bayes' result can go against intuition.
+<pre class="py-run">
+p_d = 0.0001           # P(disease)
+p_t_given_d = 0.99     # P(positive | disease)
+p_t_given_not_d = 0.01 # P(positive | no disease)
+
+p_t = p_t_given_d * p_d + p_t_given_not_d * (1 - p_d)  # total probability
+print("P(t) =", round(p_t, 6))
+print("P(d | t) =", round(p_t_given_d * p_d / p_t, 4))
+</pre>
+          </li>
+          <li>
+            <strong>Priors from the meal history.</strong> \(P(\text{Skipped} = \text{Yes}) = 5/12 = 0.4167\) and \(P(\text{Skipped} = \text{No}) = 7/12 = 0.5833\).
+          </li>
+          <li>
+            <strong>Conditional probabilities by counting.</strong> Within the 5 skipped meals and within the 7 cooked meals, count how often each feature value appears.
+            <table>
+              <thead>
+                <tr><th>Feature value</th><th>Given Skipped = Yes (5 meals)</th><th>Given Skipped = No (7 meals)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Prep time = Short</td><td>\(1/5 = 0.2000\)</td><td>\(5/7 = 0.7143\)</td></tr>
+                <tr><td>Prep time = Long</td><td>\(4/5 = 0.8000\)</td><td>\(2/7 = 0.2857\)</td></tr>
+                <tr><td>Day = Weekday</td><td>\(5/5 = 1.0000\)</td><td>\(4/7 = 0.5714\)</td></tr>
+                <tr><td>Day = Weekend</td><td>\(0/5 = 0.0000\)</td><td>\(3/7 = 0.4286\)</td></tr>
+                <tr><td>Ingredients at home = Most</td><td>\(1/5 = 0.2000\)</td><td>\(5/7 = 0.7143\)</td></tr>
+                <tr><td>Ingredients at home = Few</td><td>\(4/5 = 0.8000\)</td><td>\(2/7 = 0.2857\)</td></tr>
+              </tbody>
+            </table>
+          </li>
+          <li>
+            <strong>Score each level for the query (Long, Weekday, Few).</strong> Multiply the prior by the conditional probability of each feature value.
+            \[ \text{Yes: } \tfrac{5}{12} \cdot 0.8 \cdot 1.0 \cdot 0.8 = 0.2667 \qquad \text{No: } \tfrac{7}{12} \cdot 0.2857 \cdot 0.5714 \cdot 0.2857 = 0.0272 \]
+            The largest score is Yes, so the planner predicts <strong>skipped</strong>. If we want a probability, divide by the sum of the scores: \(0.2667 / (0.2667 + 0.0272) = 0.9074\).
+          </li>
+          <li>
+            <strong>The zero problem.</strong> Take the query (Long, Weekend, Few). In the history, no skipped meal was on a weekend, so \(P(\text{Weekend} \mid \text{Yes}) = 0\) and the Yes score is \(0.0000\), whatever the other features say. The No score is 0.0204, so the model predicts <strong>cooked</strong> only because one probability is zero. The dataset is too small to have seen that combination.
+          </li>
+          <li>
+            <strong>Smooth the probabilities.</strong> Laplace smoothing adds a small count \(k\) to every level, where \(|\mathrm{Domain}(f)|\) is the number of levels of the feature. Here \(k = 1\) and every feature has 2 levels. Priors are not smoothed.
+            \[ P(f = v \mid t) = \frac{\mathrm{count}(f = v \mid t) + k}{\mathrm{count}(f \mid t) + k \times |\mathrm{Domain}(f)|} \]
+            <table>
+              <thead>
+                <tr><th>Feature value</th><th>Smoothed, given Yes</th><th>Smoothed, given No</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Prep time = Short</td><td>\((1+1)/(5+1\cdot 2) = 0.2857\)</td><td>\((5+1)/(7+1\cdot 2) = 0.6667\)</td></tr>
+                <tr><td>Prep time = Long</td><td>\((4+1)/(5+1\cdot 2) = 0.7143\)</td><td>\((2+1)/(7+1\cdot 2) = 0.3333\)</td></tr>
+                <tr><td>Day = Weekday</td><td>\((5+1)/(5+1\cdot 2) = 0.8571\)</td><td>\((4+1)/(7+1\cdot 2) = 0.5556\)</td></tr>
+                <tr><td>Day = Weekend</td><td>\((0+1)/(5+1\cdot 2) = 0.1429\)</td><td>\((3+1)/(7+1\cdot 2) = 0.4444\)</td></tr>
+                <tr><td>Ingredients at home = Most</td><td>\((1+1)/(5+1\cdot 2) = 0.2857\)</td><td>\((5+1)/(7+1\cdot 2) = 0.6667\)</td></tr>
+                <tr><td>Ingredients at home = Few</td><td>\((4+1)/(5+1\cdot 2) = 0.7143\)</td><td>\((2+1)/(7+1\cdot 2) = 0.3333\)</td></tr>
+              </tbody>
+            </table>
+            For the query (Long, Weekend, Few):
+            \[ \text{Yes: } \tfrac{5}{12} \cdot 0.7143 \cdot 0.1429 \cdot 0.7143 = 0.0304 \qquad \text{No: } \tfrac{7}{12} \cdot 0.3333 \cdot 0.4444 \cdot 0.3333 = 0.0288 \]
+            Neither score is zero any more, and the prediction changes to <strong>skipped</strong>: a long meal with few ingredients is more likely to be skipped, even if it was never seen on a weekend.
+          </li>
+        </ol>
+
+        <p><strong>Naive Bayes as a diagram.</strong></p>
+<pre class="mermaid">
+flowchart TD
+  A["Training meals"] --> B["Count the priors P(t = l)"]
+  A --> C["Count P(feature = value | t = l), with smoothing"]
+  B --> D["Query: multiply the prior by the probability of each feature value"]
+  C --> D
+  D --> E["One score for each target level"]
+  E --> F["Predict the level with the largest score"]
+</pre>
+
+        <p><strong>Check it with Python.</strong> Edit the code and press Run. Try <code>k=2</code> or a different query, such as <code>("Short", "Weekend", "Few")</code>.</p>
+<pre class="py-run">
+from collections import Counter
+
+meals = [
+    ("Long", "Weekday", "Few", "Yes"),
+    ("Long", "Weekday", "Few", "Yes"),
+    ("Long", "Weekday", "Most", "Yes"),
+    ("Long", "Weekend", "Most", "No"),
+    ("Short", "Weekday", "Most", "No"),
+    ("Short", "Weekday", "Few", "No"),
+    ("Short", "Weekend", "Most", "No"),
+    ("Short", "Weekend", "Few", "No"),
+    ("Long", "Weekday", "Most", "No"),
+    ("Short", "Weekday", "Few", "Yes"),
+    ("Long", "Weekday", "Few", "Yes"),
+    ("Short", "Weekday", "Most", "No"),
+]  # prep time, day, ingredients at home, skipped?
+domains = [("Short", "Long"), ("Weekday", "Weekend"), ("Most", "Few")]
+
+def prior(label):
+    return sum(r[-1] == label for r in meals) / len(meals)
+
+def cond(i, value, label, k=0):
+    # P(feature i = value | skipped = label), with Laplace smoothing k
+    rows = [r for r in meals if r[-1] == label]
+    count = sum(r[i] == value for r in rows)
+    return (count + k) / (len(rows) + k * len(domains[i]))
+
+def score(query, label, k=0):
+    s = prior(label)
+    for i, value in enumerate(query):
+        s *= cond(i, value, label, k)
+    return s
+
+def predict(query, k=0):
+    scores = {label: score(query, label, k) for label in ("Yes", "No")}
+    return max(scores, key=scores.get), scores
+
+def show(query, k=0):
+    label, scores = predict(query, k)
+    print(query, "k =", k, "->", label, {l: round(s, 4) for l, s in scores.items()})
+
+show(("Long", "Weekday", "Few"))
+show(("Long", "Weekend", "Few"), k=0)
+show(("Long", "Weekend", "Few"), k=1)
+</pre>
+        <p>Expected output: Yes with scores 0.2667 and 0.0272; then No with scores 0.0 and 0.0204 (the zero problem); then Yes with scores 0.0304 and 0.0288 after smoothing with \(k = 1\).</p>
+      </section>
+
+      <section id="practice">
+        <h2>4. Practice exercise</h2>
+        <p><strong>Exercise A.</strong> Use Bayes' theorem to compute \(P(\text{Skipped} = \text{Yes} \mid \text{Prep time} = \text{Long})\). Then check it by counting the Long meals.</p>
+        <details>
+          <summary>Show answer</summary>
+          <p>\(P(\text{Long} \mid \text{Yes}) = 4/5 = 0.8\), \(P(\text{Yes}) = 5/12\) and \(P(\text{Long}) = 6/12 = 0.5\).</p>
+          \[ P(\text{Yes} \mid \text{Long}) = \frac{0.8 \times 5/12}{0.5} = \mathbf{0.6667} \]
+          <p>By counting: 6 meals have Long prep time and 4 of them were skipped, which is \(4/6 = 0.6667\). Check it:</p>
+<pre class="py-run">
+p_long_given_yes = cond(0, "Long", "Yes")
+p_long = sum(r[0] == "Long" for r in meals) / len(meals)
+print(round(p_long_given_yes * prior("Yes") / p_long, 4))
+</pre>
+        </details>
+        <p><strong>Exercise B.</strong> For the query (Short, Weekday, Few), compute the naive Bayes scores without smoothing and with \(k = 1\). Does the prediction change?</p>
+        <details>
+          <summary>Show answer</summary>
+          <p>Without smoothing the scores are Yes \(0.0667\) and No \(0.0680\), so the prediction is <strong>cooked</strong> (by a very small margin). With \(k = 1\) they become Yes \(0.0729\) and No \(0.0720\), so the prediction changes to <strong>skipped</strong>. When the scores are this close, the smoothing parameter can decide the result.</p>
+<pre class="py-run">
+show(("Short", "Weekday", "Few"), k=0)
+show(("Short", "Weekday", "Few"), k=1)
+</pre>
+        </details>
+        <p><strong>Exercise C.</strong> Apply Laplace smoothing with \(k = 3\) to \(P(\text{Weekend} \mid \text{Yes})\) and \(P(\text{Weekend} \mid \text{No})\).</p>
+        <details>
+          <summary>Show answer</summary>
+          \[ P(\text{Weekend} \mid \text{Yes}) = \frac{0 + 3}{5 + 3 \times 2} = \mathbf{0.2727} \qquad P(\text{Weekend} \mid \text{No}) = \frac{3 + 3}{7 + 3 \times 2} = \mathbf{0.4615} \]
+<pre class="py-run">
+print(round(cond(1, "Weekend", "Yes", k=3), 4))
+print(round(cond(1, "Weekend", "No", k=3), 4))
+</pre>
+        </details>
+      </section>
+
+      <section id="midterm-notes">
+        <h2>5. Likely on the midterm</h2>
+        <ul>
+          <li>Apply <strong>Bayes' theorem</strong> by hand: \(P(X \mid Y) = \dfrac{P(Y \mid X)\,P(X)}{P(Y)}\), getting \(P(Y)\) from the theorem of total probability when it is not given.</li>
+          <li>Know the <strong>product rule</strong> \(P(X, Y) = P(X \mid Y)\,P(Y)\), the <strong>chain rule</strong> for more variables, and the difference between joint, conditional and prior probabilities.</li>
+          <li>Make a <strong>MAP prediction</strong>: compute the numerator for each target level and pick the largest; the denominator can be dropped.</li>
+          <li>Run <strong>naive Bayes</strong> by hand: priors, conditional probabilities by counting, multiply, compare. Know that it assumes conditional independence given the target and why that makes it practical (the full joint distribution suffers from the curse of dimensionality).</li>
+          <li>Know why <strong>zero probabilities</strong> are a problem and how <strong>Laplace smoothing</strong> fixes them: add \(k\) to the counts and \(k \times |\mathrm{Domain}(f)|\) to the denominator. A larger \(k\) means more smoothing.</li>
+          <li>The rest of the chapter (continuous features with probability density functions, binning, and Bayesian networks) is in sections 6.4.2 to 6.4.4 of the book; read it when the professor covers it.</li>
+        </ul>
+      </section>
+
+      <footer>Study project by Vyany &middot; Bellevue College</footer>
+    </main>
+
+    <aside class="panel">
+      <h2>On this page</h2>
+      <ul class="upcoming">
+        <li><a href="#big-idea">1. Big idea</a></li>
+        <li><a href="#meal-planner-example">2. Meal planner example</a></li>
+        <li><a href="#step-by-step">3. Step-by-step calculation</a></li>
+        <li><a href="#practice">4. Practice exercise</a></li>
+        <li><a href="#midterm-notes">5. Likely on the midterm</a></li>
+      </ul>
+    </aside>
+
+  </div>
+
+<pre class="py-setup">
+from collections import Counter
+
+meals = [
+    ("Long", "Weekday", "Few", "Yes"),
+    ("Long", "Weekday", "Few", "Yes"),
+    ("Long", "Weekday", "Most", "Yes"),
+    ("Long", "Weekend", "Most", "No"),
+    ("Short", "Weekday", "Most", "No"),
+    ("Short", "Weekday", "Few", "No"),
+    ("Short", "Weekend", "Most", "No"),
+    ("Short", "Weekend", "Few", "No"),
+    ("Long", "Weekday", "Most", "No"),
+    ("Short", "Weekday", "Few", "Yes"),
+    ("Long", "Weekday", "Few", "Yes"),
+    ("Short", "Weekday", "Most", "No"),
+]  # prep time, day, ingredients at home, skipped?
+domains = [("Short", "Long"), ("Weekday", "Weekend"), ("Most", "Few")]
+
+def prior(label):
+    return sum(r[-1] == label for r in meals) / len(meals)
+
+def cond(i, value, label, k=0):
+    # P(feature i = value | skipped = label), with Laplace smoothing k
+    rows = [r for r in meals if r[-1] == label]
+    count = sum(r[i] == value for r in rows)
+    return (count + k) / (len(rows) + k * len(domains[i]))
+
+def score(query, label, k=0):
+    s = prior(label)
+    for i, value in enumerate(query):
+        s *= cond(i, value, label, k)
+    return s
+
+def predict(query, k=0):
+    scores = {label: score(query, label, k) for label in ("Yes", "No")}
+    return max(scores, key=scores.get), scores
+
+def show(query, k=0):
+    label, scores = predict(query, k)
+    print(query, "k =", k, "->", label, {l: round(s, 4) for l, s in scores.items()})
+</pre>
+</body>
+</html>
