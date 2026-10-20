@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chapter 4: Decision Trees - ML Study Lab</title>
   <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script type="module" src="assets/site.js"></script>
 </head>
 <body>
   <div class="app">
@@ -56,17 +60,15 @@
 
       <section id="step-by-step">
         <h2>3. Step-by-step calculation</h2>
-        <p><strong>Formulas.</strong></p>
-        <ul>
-          <li>Entropy: <code>H(t, D) = - sum over levels l of P(t = l) * log2 P(t = l)</code></li>
-          <li>Remainder after splitting on a feature d: <code>rem(d, D) = sum over values v of (|Dv| / |D|) * H(t, Dv)</code></li>
-          <li>Information gain: <code>IG(d, D) = H(t, D) - rem(d, D)</code></li>
-        </ul>
+        <p><strong>Formulas.</strong> Here \(t\) is the target, \(D\) is the set of rows, \(d\) is a feature, and \(D_{d=v}\) is the rows where feature \(d\) has value \(v\).</p>
+        \[ H(t, D) = -\sum_{l \in \text{levels}(t)} P(t = l)\,\log_2 P(t = l) \]
+        \[ \mathrm{rem}(d, D) = \sum_{v \in \text{levels}(d)} \frac{|D_{d=v}|}{|D|}\; H(t, D_{d=v}) \]
+        \[ \mathrm{IG}(d, D) = H(t, D) - \mathrm{rem}(d, D) \]
 
         <ol>
           <li>
-            <strong>Entropy of the whole table.</strong> P(Yes) = 7/10 = 0.7 and P(No) = 3/10 = 0.3.<br>
-            <code>H = -(0.7 * log2 0.7 + 0.3 * log2 0.3) = 0.8813</code> bits.
+            <strong>Entropy of the whole table.</strong> \(P(\text{Yes}) = 7/10 = 0.7\) and \(P(\text{No}) = 3/10 = 0.3\).
+            \[ H(t, D) = -\left(0.7 \log_2 0.7 + 0.3 \log_2 0.3\right) = 0.8813 \text{ bits} \]
           </li>
           <li>
             <strong>Information gain of each feature on the whole table.</strong>
@@ -75,49 +77,51 @@
                 <tr><th>Feature</th><th>Partitions (Yes / No) and entropy</th><th>Remainder</th><th>Information gain</th></tr>
               </thead>
               <tbody>
-                <tr><td>Prep time</td><td>Short: 4 rows (4 / 0), H = 0<br>Long: 6 rows (3 / 3), H = 1</td><td>0.4 * 0 + 0.6 * 1 = 0.6000</td><td><strong>0.2813</strong></td></tr>
-                <tr><td>Ingredients at home</td><td>Most: 6 rows (5 / 1), H = 0.6500<br>Few: 4 rows (2 / 2), H = 1</td><td>0.6 * 0.65 + 0.4 * 1 = 0.7900</td><td>0.0913</td></tr>
-                <tr><td>Cost</td><td>Cheap: 7 rows (5 / 2), H = 0.8631<br>Expensive: 3 rows (2 / 1), H = 0.9183</td><td>0.7 * 0.8631 + 0.3 * 0.9183 = 0.8797</td><td>0.0016</td></tr>
+                <tr><td>Prep time</td><td>Short: 4 rows (4 / 0), \(H = 0\)<br>Long: 6 rows (3 / 3), \(H = 1\)</td><td>\(0.4 \cdot 0 + 0.6 \cdot 1 = 0.6000\)</td><td>\(\mathbf{0.2813}\)</td></tr>
+                <tr><td>Ingredients at home</td><td>Most: 6 rows (5 / 1), \(H = 0.6500\)<br>Few: 4 rows (2 / 2), \(H = 1\)</td><td>\(0.6 \cdot 0.65 + 0.4 \cdot 1 = 0.7900\)</td><td>\(0.0913\)</td></tr>
+                <tr><td>Cost</td><td>Cheap: 7 rows (5 / 2), \(H = 0.8631\)<br>Expensive: 3 rows (2 / 1), \(H = 0.9183\)</td><td>\(0.7 \cdot 0.8631 + 0.3 \cdot 0.9183 = 0.8797\)</td><td>\(0.0016\)</td></tr>
               </tbody>
             </table>
           </li>
           <li>
-            <strong>Choose the root.</strong> Prep time has the highest gain (0.2813), so it is the root. Its branch <code>Short</code> has only Yes rows, so it becomes a leaf: <strong>Yes</strong> (base case: all rows have the same target).
+            <strong>Choose the root.</strong> Prep time has the highest gain (0.2813), so it is the root. Its branch <em>Short</em> has only Yes rows, so it becomes a leaf: <strong>Yes</strong> (base case: all rows have the same target).
           </li>
           <li>
-            <strong>Repeat inside the Long branch</strong> (6 rows, 3 Yes and 3 No, H = 1). The feature Prep time is used, so only two features are left.
+            <strong>Repeat inside the Long branch</strong> (6 rows, 3 Yes and 3 No, \(H = 1\)). Prep time is already used, so two features are left.
             <table>
               <thead>
                 <tr><th>Feature</th><th>Partitions (Yes / No) and entropy</th><th>Remainder</th><th>Information gain</th></tr>
               </thead>
               <tbody>
-                <tr><td>Ingredients at home</td><td>Few: 2 rows (0 / 2), H = 0<br>Most: 4 rows (3 / 1), H = 0.8113</td><td>2/6 * 0 + 4/6 * 0.8113 = 0.5409</td><td><strong>0.4591</strong></td></tr>
-                <tr><td>Cost</td><td>Cheap: 5 rows (3 / 2), H = 0.9710<br>Expensive: 1 row (0 / 1), H = 0</td><td>5/6 * 0.9710 + 1/6 * 0 = 0.8091</td><td>0.1909</td></tr>
+                <tr><td>Ingredients at home</td><td>Few: 2 rows (0 / 2), \(H = 0\)<br>Most: 4 rows (3 / 1), \(H = 0.8113\)</td><td>\(\tfrac{2}{6} \cdot 0 + \tfrac{4}{6} \cdot 0.8113 = 0.5409\)</td><td>\(\mathbf{0.4591}\)</td></tr>
+                <tr><td>Cost</td><td>Cheap: 5 rows (3 / 2), \(H = 0.9710\)<br>Expensive: 1 row (0 / 1), \(H = 0\)</td><td>\(\tfrac{5}{6} \cdot 0.9710 + \tfrac{1}{6} \cdot 0 = 0.8091\)</td><td>\(0.1909\)</td></tr>
               </tbody>
             </table>
-            Ingredients at home wins (0.4591). Its branch <code>Few</code> is pure (both rows are No), so it is a leaf: <strong>No</strong>.
+            Ingredients at home wins (0.4591). Its branch <em>Few</em> is pure (both rows are No), so it is a leaf: <strong>No</strong>.
           </li>
           <li>
-            <strong>Repeat inside Long and Most</strong> (4 rows: 3 Yes and 1 No, H = 0.8113). Only Cost is left, and it separates the rows perfectly (gain 0.8113): <code>Cheap</code> gives <strong>Yes</strong> (3 rows) and <code>Expensive</code> gives <strong>No</strong> (1 row).
+            <strong>Repeat inside Long and Most</strong> (4 rows: 3 Yes and 1 No, \(H = 0.8113\)). Only Cost is left, and it separates the rows perfectly (gain \(0.8113\)): <em>Cheap</em> gives <strong>Yes</strong> (3 rows) and <em>Expensive</em> gives <strong>No</strong> (1 row).
           </li>
           <li>
             <strong>The final tree.</strong>
-            <pre><code>Prep time?
-  Short -> Yes
-  Long  -> Ingredients at home?
-             Few  -> No
-             Most -> Cost?
-                       Cheap     -> Yes
-                       Expensive -> No</code></pre>
+<pre class="mermaid">
+flowchart TD
+  A{"Prep time?"} -->|Short| B["Yes"]
+  A -->|Long| C{"Ingredients at home?"}
+  C -->|Few| D["No"]
+  C -->|Most| E{"Cost?"}
+  E -->|Cheap| F["Yes"]
+  E -->|Expensive| G["No"]
+</pre>
           </li>
           <li>
-            <strong>Predict a new recipe.</strong> A recipe with Long prep time, Most ingredients at home and Cheap cost: Prep time = Long, then Ingredients = Most, then Cost = Cheap, so the planner says <strong>Yes</strong>.
+            <strong>Predict a new recipe.</strong> A recipe with Long prep time, Most ingredients at home and Cheap cost: Prep time is Long, then Ingredients is Most, then Cost is Cheap, so the planner says <strong>Yes</strong>.
           </li>
         </ol>
 
-        <details>
-          <summary>Check it with Python</summary>
-          <pre><code>from math import log2
+        <p><strong>Check it with Python.</strong> The code below is editable: change it and press Run. Try changing the Cost of the last row to <code>"Cheap"</code> and see how the gains change.</p>
+<pre class="py-run">
+from math import log2
 from collections import Counter
 
 rows = [
@@ -132,7 +136,8 @@ features = ["Prep time", "Ingredients at home", "Cost"]
 def entropy(labels):
     counts = Counter(labels)
     n = len(labels)
-    return -sum(c / n * log2(c / n) for c in counts.values())
+    h = -sum(c / n * log2(c / n) for c in counts.values())
+    return max(0.0, h)  # avoids printing -0.0 for a pure set
 
 def info_gain(rows, i):
     n = len(rows)
@@ -144,55 +149,72 @@ def info_gain(rows, i):
 
 print("H =", round(entropy([r[-1] for r in rows]), 4))
 for i, name in enumerate(features):
-    print(name, round(info_gain(rows, i), 4))</code></pre>
-          <p>Expected output: H = 0.8813, Prep time 0.2813, Ingredients at home 0.0913, Cost 0.0016.</p>
-        </details>
+    print(name, round(info_gain(rows, i), 4))
+</pre>
+        <p>Expected output: \(H = 0.8813\), Prep time \(0.2813\), Ingredients at home \(0.0913\), Cost \(0.0016\).</p>
       </section>
 
       <section id="gain-ratio-gini">
         <h2>Other impurity measures</h2>
         <p>Information gain tends to favor features with many values. Two common fixes:</p>
         <ul>
-          <li><strong>Gain ratio</strong> = information gain / split information, where split information = <code>- sum (|Dv| / |D|) * log2(|Dv| / |D|)</code>.</li>
-          <li><strong>Gini index</strong> = <code>1 - sum P(l)^2</code>. A pure set has Gini 0.</li>
+          <li><strong>Gain ratio</strong>: the information gain divided by the split information.
+            \[ \mathrm{GR}(d, D) = \frac{\mathrm{IG}(d, D)}{\mathrm{SI}(d, D)}, \qquad \mathrm{SI}(d, D) = -\sum_{v} \frac{|D_{d=v}|}{|D|} \log_2 \frac{|D_{d=v}|}{|D|} \]
+          </li>
+          <li><strong>Gini index</strong>: a pure set has Gini 0.
+            \[ \mathrm{Gini}(t, D) = 1 - \sum_{l \in \text{levels}(t)} P(t = l)^2 \]
+          </li>
         </ul>
         <table>
           <thead>
             <tr><th>Feature</th><th>Information gain</th><th>Split information</th><th>Gain ratio</th></tr>
           </thead>
           <tbody>
-            <tr><td>Prep time</td><td>0.2813</td><td>0.9710</td><td>0.2897</td></tr>
-            <tr><td>Ingredients at home</td><td>0.0913</td><td>0.9710</td><td>0.0940</td></tr>
-            <tr><td>Cost</td><td>0.0016</td><td>0.8813</td><td>0.0018</td></tr>
+            <tr><td>Prep time</td><td>\(0.2813\)</td><td>\(0.9710\)</td><td>\(0.2897\)</td></tr>
+            <tr><td>Ingredients at home</td><td>\(0.0913\)</td><td>\(0.9710\)</td><td>\(0.0940\)</td></tr>
+            <tr><td>Cost</td><td>\(0.0016\)</td><td>\(0.8813\)</td><td>\(0.0018\)</td></tr>
           </tbody>
         </table>
-        <p>With this table both measures agree: Prep time is the best root. The Gini index of the whole table is 1 - (0.7<sup>2</sup> + 0.3<sup>2</sup>) = 0.42.</p>
+        <p>With this table both measures agree: Prep time is the best root. The Gini index of the whole table is \(1 - (0.7^2 + 0.3^2) = 0.42\).</p>
       </section>
 
       <section id="practice">
         <h2>4. Practice exercise</h2>
-        <p><strong>Exercise A.</strong> Using the table above, what does the tree predict for a recipe with <em>Long</em> prep time, <em>Few</em> ingredients at home and <em>Cheap</em> cost?</p>
+        <p><strong>Exercise A.</strong> Using the tree above, what does it predict for a recipe with <em>Long</em> prep time, <em>Few</em> ingredients at home and <em>Cheap</em> cost?</p>
         <details>
           <summary>Show answer</summary>
-          <p>Prep time = Long, then Ingredients at home = Few, which is a leaf with <strong>No</strong>. The cost is not even asked. (This matches rows 5 and 6 of the table.)</p>
+          <p>Prep time is Long, then Ingredients at home is Few, which is a leaf with <strong>No</strong>. The cost is not even asked. (This matches rows 5 and 6 of the table.)</p>
         </details>
         <p><strong>Exercise B.</strong> Inside the Long branch (6 rows), compute the information gain of Cost and explain why ID3 does not choose it.</p>
         <details>
           <summary>Show answer</summary>
-          <p>Cheap: 5 rows (3 Yes, 2 No), H = 0.9710. Expensive: 1 row (0 Yes, 1 No), H = 0. Remainder = 5/6 * 0.9710 + 1/6 * 0 = 0.8091. Gain = 1 - 0.8091 = <strong>0.1909</strong>. Ingredients at home has a higher gain (0.4591), so ID3 chooses it.</p>
+          <p>Cheap: 5 rows (3 Yes, 2 No), \(H = 0.9710\). Expensive: 1 row (0 Yes, 1 No), \(H = 0\).</p>
+          \[ \mathrm{rem} = \tfrac{5}{6} \cdot 0.9710 + \tfrac{1}{6} \cdot 0 = 0.8091 \qquad \mathrm{IG} = 1 - 0.8091 = \mathbf{0.1909} \]
+          <p>Ingredients at home has a higher gain (\(0.4591\)), so ID3 chooses it. Check it by running this code:</p>
+<pre class="py-run">
+long_rows = [r for r in rows if r[0] == "Long"]
+print("Cost:", round(info_gain(long_rows, 2), 4))
+print("Ingredients at home:", round(info_gain(long_rows, 1), 4))
+</pre>
         </details>
         <p><strong>Exercise C.</strong> The planner receives a partition with 5 Yes and 5 No. What is its entropy? What would it be if all 10 rows were Yes?</p>
         <details>
           <summary>Show answer</summary>
-          <p>With 5 and 5: P = 0.5 and 0.5, so H = -(0.5 * log2 0.5 + 0.5 * log2 0.5) = <strong>1</strong> bit (the most mixed case for two levels). With 10 Yes: H = <strong>0</strong> (a pure set).</p>
+          <p>With 5 and 5: \(P = 0.5\) for each level.</p>
+          \[ H = -\left(0.5 \log_2 0.5 + 0.5 \log_2 0.5\right) = \mathbf{1} \text{ bit} \]
+          <p>This is the most mixed case for two levels. With 10 Yes the set is pure, so \(H = \mathbf{0}\). Check it:</p>
+<pre class="py-run">
+print(entropy(["Yes"] * 5 + ["No"] * 5))
+print(entropy(["Yes"] * 10))
+</pre>
         </details>
       </section>
 
       <section id="midterm-notes">
         <h2>5. Likely on the midterm</h2>
         <ul>
-          <li>Calculate <strong>entropy</strong> by hand: <code>H = - sum P(l) * log2 P(l)</code>. Know the cases: pure set = 0, even two-level mix = 1.</li>
-          <li>Calculate <strong>information gain</strong> by hand: whole-table entropy minus the weighted entropy of the partitions.</li>
+          <li>Calculate <strong>entropy</strong> by hand: \(H = -\sum_l P(l) \log_2 P(l)\). Know the cases: a pure set has \(H = 0\) and an even two-level mix has \(H = 1\).</li>
+          <li>Calculate <strong>information gain</strong> by hand: \(\mathrm{IG} = H(t, D) - \mathrm{rem}(d, D)\), the whole-table entropy minus the weighted entropy of the partitions.</li>
           <li>Run <strong>ID3</strong> by hand: choose the feature with the highest gain, split, and repeat in each partition without reusing that feature.</li>
           <li>Know the three <strong>stopping cases</strong>: all rows have the same target (leaf), no features left (leaf with the majority), and an empty partition (leaf with the majority of the parent).</li>
           <li>Know <strong>gain ratio</strong> and the <strong>Gini index</strong>, and why gain ratio is used (information gain favors features with many values).</li>
@@ -216,5 +238,33 @@ for i, name in enumerate(features):
     </aside>
 
   </div>
+
+<pre class="py-setup">
+from math import log2
+from collections import Counter
+
+rows = [
+    ("Short", "Most", "Cheap", "Yes"), ("Short", "Most", "Expensive", "Yes"),
+    ("Short", "Few", "Cheap", "Yes"),  ("Short", "Few", "Expensive", "Yes"),
+    ("Long", "Few", "Cheap", "No"),    ("Long", "Few", "Cheap", "No"),
+    ("Long", "Most", "Cheap", "Yes"),  ("Long", "Most", "Cheap", "Yes"),
+    ("Long", "Most", "Cheap", "Yes"),  ("Long", "Most", "Expensive", "No"),
+]
+features = ["Prep time", "Ingredients at home", "Cost"]
+
+def entropy(labels):
+    counts = Counter(labels)
+    n = len(labels)
+    h = -sum(c / n * log2(c / n) for c in counts.values())
+    return max(0.0, h)
+
+def info_gain(rows, i):
+    n = len(rows)
+    remainder = 0
+    for value in set(r[i] for r in rows):
+        part = [r[-1] for r in rows if r[i] == value]
+        remainder += len(part) / n * entropy(part)
+    return entropy([r[-1] for r in rows]) - remainder
+</pre>
 </body>
 </html>
